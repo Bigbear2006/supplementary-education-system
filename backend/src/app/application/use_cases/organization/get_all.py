@@ -4,7 +4,8 @@ from app.domain.entities import Organization
 
 class GetAllOrganizations:
     def __init__(
-        self, organization_repository: OrganizationRepository,
+        self,
+        organization_repository: OrganizationRepository,
     ) -> None:
         self.organization_repository = organization_repository
 

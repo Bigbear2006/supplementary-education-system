@@ -8,15 +8,7 @@ class JWTTokenParser:
         self.request = request
 
     def parse(self) -> str:
-        header = self.request.headers.get('Authorization')
-        if not header:
+        access = self.request.cookies.get('access')
+        if not access:
             raise NotAuthenticatedError()
-
-        parts = header.split()
-        if len(parts) != 2:
-            raise NotAuthenticatedError()
-
-        if parts[0] != 'Bearer':
-            raise NotAuthenticatedError()
-
-        return parts[1]
+        return access

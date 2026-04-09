@@ -1,8 +1,9 @@
+from typing import Annotated
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Response
-from fastapi.params import Depends
-from fastapi.security import HTTPBearer
+from fastapi.params import Cookie, Depends
 
 from app.application.use_cases.user.change_password import (
     ChangeUserPassword,
@@ -19,17 +20,18 @@ from app.application.use_cases.user.update_current import (
     UpdateCurrentUserDTO,
 )
 from app.infrastructure.auth.token_processor import JWTTokenProcessor
-from app.presentation.api.routers.user.models import (
-    LoginUserResponse,
-    UserResponse,
+from app.presentation.api.common.cookie import (
+    cookie_scheme,
+    set_access_cookie,
+    set_refresh_cookie,
 )
+from app.presentation.api.routers.user.models import UserResponse
 
 user_router = APIRouter(
     prefix='/users',
     route_class=DishkaRoute,
     tags=['users'],
 )
-security = HTTPBearer()
 
 
 @user_router.post('/', status_code=201)
@@ -41,18 +43,38 @@ async def register_user_router(
     return UserResponse.model_validate(user)
 
 
-@user_router.post('/login/')
+@user_router.post('/login/', status_code=204)
 async def login_user_router(
     data: LoginUserDTO,
     login_user: FromDishka[LoginUser],
     token_processor: FromDishka[JWTTokenProcessor],
-) -> LoginUserResponse:
+    response: Response,
+) -> None:
     user = await login_user(data)
-    token = token_processor.create_token(user.id)
-    return LoginUserResponse(access_token=token)
+    token_pair = token_processor.create_token_pair(user.id)
+    set_access_cookie(response, token_pair.access)
+    set_refresh_cookie(response, token_pair.refresh)
 
 
-@user_router.get('/me/', dependencies=[Depends(security)])
+@user_router.post('/refresh-token/', status_code=204)
+async def refresh_token_router(
+    refresh: Annotated[str, Cookie()],
+    token_processor: FromDishka[JWTTokenProcessor],
+    response: Response,
+) -> None:
+    token_processor.validate_refresh_token(refresh)
+    user_id = token_processor.extract_user_id(refresh)
+    access = token_processor.create_access_token(user_id)
+    set_refresh_cookie(response, access)
+
+
+@user_router.post('/logout/', status_code=204)
+async def logout_user_router(response: Response) -> None:
+    response.delete_cookie('access')
+    response.delete_cookie('refresh')
+
+
+@user_router.get('/me/', dependencies=[Depends(cookie_scheme)])
 async def get_me_router(
     get_current_user: FromDishka[GetCurrentUser],
 ) -> UserResponse:
@@ -60,7 +82,7 @@ async def get_me_router(
     return UserResponse.model_validate(user)
 
 
-@user_router.patch('/me/', dependencies=[Depends(security)])
+@user_router.patch('/me/', dependencies=[Depends(cookie_scheme)])
 async def update_me_router(
     data: UpdateCurrentUserDTO,
     update_user: FromDishka[UpdateCurrentUser],
@@ -72,7 +94,7 @@ async def update_me_router(
 @user_router.patch(
     '/me/change-password/',
     status_code=204,
-    dependencies=[Depends(security)],
+    dependencies=[Depends(cookie_scheme)],
 )
 async def change_my_password_router(
     data: ChangeUserPasswordDTO,

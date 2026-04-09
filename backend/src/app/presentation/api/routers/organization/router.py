@@ -2,7 +2,6 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter
 from fastapi.params import Depends
-from fastapi.security import HTTPBearer
 
 from app.application.use_cases.organization.create import (
     CreateOrganization,
@@ -24,6 +23,7 @@ from app.application.use_cases.organization.update_member import (
     UpdateOrganizationMember,
     UpdateOrganizationMemberDTO,
 )
+from app.presentation.api.common.cookie import cookie_scheme
 from app.presentation.api.routers.organization.models import (
     MyOrganizationResponse,
     OrganizationMemberDetailResponse,
@@ -37,11 +37,12 @@ organization_router = APIRouter(
     route_class=DishkaRoute,
     tags=['organizations'],
 )
-security = HTTPBearer()
 
 
 @organization_router.post(
-    '/', status_code=201, dependencies=[Depends(security)],
+    '/',
+    status_code=201,
+    dependencies=[Depends(cookie_scheme)],
 )
 async def create_organization_router(
     data: CreateOrganizationDTO,
@@ -67,7 +68,7 @@ async def get_current_organization_router(
     return OrganizationResponse.model_validate(org)
 
 
-@organization_router.get('/my/', dependencies=[Depends(security)])
+@organization_router.get('/my/', dependencies=[Depends(cookie_scheme)])
 async def get_my_organizations_router(
     get_my_organizations: FromDishka[GetMyOrganizations],
 ) -> list[MyOrganizationResponse]:

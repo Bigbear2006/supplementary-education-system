@@ -24,10 +24,12 @@ async def cors_middleware(request: Request, call_next: Any) -> Response:
     else:
         rsp = await call_next(request)
 
-    rsp.headers['Access-Control-Allow-Origin'] = '*'
-    rsp.headers['Access-Control-Allow-Credentials'] = 'true'
-    rsp.headers['Access-Control-Allow-Headers'] = '*'
-    rsp.headers['Access-Control-Allow-Methods'] = '*'
+    origin = request.headers.get('origin')
+    if origin in ['http://localhost:5173', 'http://my-org.localhost:5173']:
+        rsp.headers['Access-Control-Allow-Origin'] = origin
+        rsp.headers['Access-Control-Allow-Credentials'] = 'true'
+        rsp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        rsp.headers['Access-Control-Allow-Methods'] = '*'
     return rsp
 
 

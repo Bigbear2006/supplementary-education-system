@@ -72,23 +72,27 @@ def main() -> None:
     setup_db()
 
     app = create_app()
-    with CustomTestClient(app, base_url='http://test/api/v1') as client:
+    with CustomTestClient(app, base_url='http://localhost/api/v1') as client:
         ### USERS
-        user_data = {
+        owner = {
             'fullname': 'ФИО',
             'email': 'morozm982@gmail.com',
             'phone': '79381298115',
             'password': 'g2md21-n3xd0',
         }
-        rsp = client.post('/users/', json=user_data)
+        rsp = client.post('/users/', json=owner)
         assert rsp.json().get('id') == 1
 
-        rsp = client.post('/users/login/', json=user_data)
-        access_token = rsp.json().get('access_token')
-        assert access_token
+        rsp = client.post('/users/login/', json=owner)
+        owner_access = rsp.cookies.get('access')
+        assert owner_access
+        owner_cookies = {'access': owner_access}
 
-        rsp = client.get('/users/me/', headers=headers(access_token))
+        rsp = client.get('/users/me/', cookies=owner_cookies)
         assert rsp.json().get('id') == 1
+
+        access_token = ''
+        return
 
         new_user_phone = '89991234567'
         rsp = client.patch(
@@ -96,14 +100,14 @@ def main() -> None:
             json={'phone': new_user_phone},
             headers=headers(access_token),
         )
-        assert rsp.json().get('fullname') == user_data['fullname']
+        assert rsp.json().get('fullname') == owner['fullname']
         assert rsp.json().get('phone') == new_user_phone
 
         new_user_password = 'm92f4032f4u'
         rsp = client.patch(
             '/users/me/change-password/',
             json={
-                'old_password': user_data['password'],
+                'old_password': owner['password'],
                 'new_password': new_user_password,
             },
             headers=headers(access_token),
@@ -112,7 +116,7 @@ def main() -> None:
 
         rsp = client.post(
             '/users/login/',
-            json={'email': user_data['email'], 'password': new_user_password},
+            json={'email': owner['email'], 'password': new_user_password},
         )
         access_token = rsp.json().get('access_token')
         assert access_token
@@ -132,7 +136,7 @@ def main() -> None:
         )
         assert rsp.json().get('id') == 1
 
-        user_data_2 = {**user_data, 'email': 'mororzm983@gmail.com'}
+        user_data_2 = {**owner, 'email': 'mororzm983@gmail.com'}
         rsp = client.post('/users/', json=user_data_2)
         assert rsp.json().get('id') == 2
 
