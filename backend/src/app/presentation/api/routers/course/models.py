@@ -35,18 +35,34 @@ class DetailCourseResponse(CourseResponse):
     subject: SubjectResponse
 
 
-class CourseTeacherResponse(BaseModel):
+class BaseCourseTeacherResponse(BaseModel):
     id: int
-    course_id: int
-    teacher_id: int
     is_active: bool
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
 
-class CourseTeacherStudentResponse(BaseModel):
+class CourseTeacherResponse(BaseCourseTeacherResponse):
+    course_id: int
+    teacher_id: int
+
+
+class DetailCourseTeacherResponse(BaseCourseTeacherResponse):
+    course: DetailCourseResponse
+    teacher: UserResponse
+
+
+class BaseCourseTeacherStudentResponse(BaseModel):
     id: int
-    course_teacher_id: int
-    student_id: int
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+class CourseTeacherStudentResponse(BaseCourseTeacherStudentResponse):
+    course_teacher_id: int
+    student_id: int
+
+
+class DetailCourseTeacherStudentResponse(BaseCourseTeacherStudentResponse):
+    course_teacher: CourseTeacherResponse
+    student: UserResponse

@@ -110,7 +110,7 @@ POLICY_EXPR = {
         '    JOIN course_teachers ct ON ct.id = cts.course_teacher_id '
         '    JOIN courses ON courses.id = ct.course_id '
         '    JOIN subjects ON subjects.id = courses.subject_id '
-        '    WHERE cts.id = lessons.student_teacher_course_id '
+        '    WHERE cts.id = lessons.course_teacher_student_id '
         "    AND subjects.organization_id = current_setting('app.current_org_id')::bigint"
         ')'
     ),

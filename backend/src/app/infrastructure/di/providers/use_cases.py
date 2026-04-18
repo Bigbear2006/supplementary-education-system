@@ -27,6 +27,7 @@ from app.application.use_cases.group import (
     RemoveUserFromGroup,
     UpdateGroup,
 )
+from app.application.use_cases.lesson import CreateLesson, GetMyLessons
 from app.application.use_cases.organization import (
     CreateOrganization,
     GetAllOrganizations,
@@ -105,3 +106,4 @@ class UseCasesProvider(Provider):
         AddUserToGroup,
         RemoveUserFromGroup,
     )
+    lesson = provide_all(CreateLesson, GetMyLessons)

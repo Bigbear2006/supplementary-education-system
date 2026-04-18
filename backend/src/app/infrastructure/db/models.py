@@ -221,7 +221,7 @@ lessons_table = Table(
     Column('id', BIGINT, primary_key=True),
     Column('group_id', BIGINT, ForeignKey('groups.id'), nullable=True),
     Column(
-        'student_teacher_course_id',
+        'course_teacher_student_id',
         BIGINT,
         ForeignKey('course_teacher_students.id'),
         nullable=True,
@@ -230,8 +230,9 @@ lessons_table = Table(
         'cabinet_id',
         BIGINT,
         ForeignKey('cabinets.id'),
-        nullable=False,
+        nullable=True,
     ),
+    Column('url', String(500), nullable=True),
     Column(
         'conducted_by_id',
         BIGINT,
@@ -303,10 +304,21 @@ mapper_registry.map_imperatively(
     courses_table,
     properties={'subject': relationship(Subject)},
 )
-mapper_registry.map_imperatively(CourseTeacher, course_teachers_table)
+mapper_registry.map_imperatively(
+    CourseTeacher,
+    course_teachers_table,
+    properties={
+        'course': relationship(Course),
+        'teacher': relationship(User),
+    },
+)
 mapper_registry.map_imperatively(
     CourseTeacherStudent,
     course_teacher_students_table,
+    properties={
+        'course_teacher': relationship(CourseTeacher),
+        'student': relationship(User),
+    },
 )
 
 mapper_registry.map_imperatively(
@@ -330,7 +342,15 @@ mapper_registry.map_imperatively(
 )
 mapper_registry.map_imperatively(UserGroup, user_groups_table)
 
-mapper_registry.map_imperatively(Lesson, lessons_table)
+mapper_registry.map_imperatively(
+    Lesson,
+    lessons_table,
+    properties={
+        'cabinet': relationship(Cabinet),
+        'group': relationship(Group),
+        'course_teacher_student': relationship(CourseTeacherStudent),
+    },
+)
 mapper_registry.map_imperatively(Attendance, attendance_table)
 mapper_registry.map_imperatively(Feedback, feedback_table)
 mapper_registry.map_imperatively(Payment, payments_table)

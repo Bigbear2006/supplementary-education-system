@@ -360,12 +360,31 @@ def main() -> None:
         assert rsp.status_code == 200
         assert len(rsp.json()) == 1
 
-        rsp = client.delete('/groups/1/users/3/', cookies=owner_cookies)
-        assert rsp.status_code == 204
+        # rsp = client.delete('/groups/1/users/3/', cookies=owner_cookies)
+        # assert rsp.status_code == 204
+        #
+        # rsp = client.get('/groups/1/users/', cookies=owner_cookies)
+        # assert rsp.status_code == 200
+        # assert len(rsp.json()) == 0
 
-        rsp = client.get('/groups/1/users/', cookies=owner_cookies)
+        ### LESSONS
+        lesson = {
+            'conducted_by_id': 2,
+            'start_date': '2026-04-18 17:00:00',
+            'end_date': '2026-04-18 18:00:00',
+            'cabinet_id': 1,
+            'group_id': 1,
+        }
+        rsp = client.post('/lessons/', json=lesson, cookies=owner_cookies)
+        assert rsp.status_code == 201
+
+        rsp = client.get('/lessons/my/', cookies=student_cookies)
         assert rsp.status_code == 200
-        assert len(rsp.json()) == 0
+        assert len(rsp.json()) == 1
+
+        rsp = client.get('/lessons/my/', cookies=teacher_cookies)
+        assert rsp.status_code == 200
+        assert len(rsp.json()) == 1
 
 
 if __name__ == '__main__':

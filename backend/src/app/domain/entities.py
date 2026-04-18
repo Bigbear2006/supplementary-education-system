@@ -72,7 +72,9 @@ class Course:
 class CourseTeacher:
     id: int = field(init=False)
     course_id: int
+    course: Course | None = field(init=False, default=None)
     teacher_id: int
+    teacher: User | None = field(init=False, default=None)
     is_active: bool = True
     created_at: datetime = field(init=False)
 
@@ -81,7 +83,9 @@ class CourseTeacher:
 class CourseTeacherStudent:
     id: int = field(init=False)
     course_teacher_id: int
+    course_teacher: CourseTeacher | None = field(init=False, default=None)
     student_id: int
+    student: User | None = field(init=False, default=None)
     created_at: datetime = field(init=False)
 
 
@@ -125,12 +129,19 @@ class UserGroup:
 @dataclass
 class Lesson:
     id: int = field(init=False)
-    cabinet_id: int
     conducted_by_id: int
     start_date: datetime
     end_date: datetime
+    cabinet_id: int | None = None
+    cabinet: Cabinet | None = field(init=False, default=None)
+    url: str | None = None
     group_id: int | None = None
-    student_teacher_course_id: int | None = None
+    group: Group | None = field(init=False, default=None)
+    course_teacher_student_id: int | None = None
+    course_teacher_student: CourseTeacherStudent | None = field(
+        init=False,
+        default=None,
+    )
     created_at: datetime = field(init=False)
 
 
